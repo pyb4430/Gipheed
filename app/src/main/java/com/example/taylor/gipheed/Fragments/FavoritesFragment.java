@@ -161,7 +161,7 @@ public class FavoritesFragment extends android.support.v4.app.Fragment {
             String selection = FavDataContract.FavGifData.COLUMN_NAME_GIPHY_ID + " = ?";
             String[] selectionArgs = {imageData.id};
             int newFav = getContext().getContentResolver().delete(Uri.parse("content://"+ FavDataContract.FAV_GIF_URI), selection, selectionArgs);
-            Log.v(TAG, "Fav deleted: " + newFav);
+            Log.v(TAG, "Favorite deleted: " + newFav);
             loadData();
         }
 
