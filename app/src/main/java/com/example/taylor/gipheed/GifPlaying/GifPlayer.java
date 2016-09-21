@@ -89,7 +89,7 @@ public class GifPlayer extends TextureView implements TextureView.SurfaceTexture
     }
 
     // TODO: Finish this:
-    // an attempt to eliminate the brief black rectangle when a gif starts playing (the GifPlayer is getting
+    // an attempt to eliminate the brief black rectangle when a gif starts playin (the GifPlayer is getting
     // shown before the MediaPlayer is initialized)
     public boolean init(final String url, final PlayerReadyListener playerReadyListener) {
         this.url = url;
