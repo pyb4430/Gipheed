@@ -20,7 +20,7 @@ import com.example.taylor.gipheed.GifPlaying.GifPlayManager;
 import com.example.taylor.gipheed.Giphy.GiphyController;
 import com.example.taylor.gipheed.Giphy.GiphyTrendRespModel;
 import com.example.taylor.gipheed.ThreadManager;
-import com.example.taylor.gipheed.TrendingRecyclerAdapter;
+import com.example.taylor.gipheed.GifFeedRecyclerAdapter;
 import com.example.taylor.gipheed.Utils;
 
 /**
@@ -33,7 +33,7 @@ public class SearchFragment extends android.support.v4.app.Fragment {
     private LinearLayout llMain;
 
     private RecyclerView recyclerView;
-    private TrendingRecyclerAdapter recyclerAdapter;
+    private GifFeedRecyclerAdapter recyclerAdapter;
     private LinearLayoutManager layoutManager;
     private GifPlayManager gifPlayManager;
 
@@ -67,7 +67,7 @@ public class SearchFragment extends android.support.v4.app.Fragment {
         llMain.addView(recyclerView);
         layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
-        recyclerAdapter = new TrendingRecyclerAdapter(getContext(), isViewModeStream);
+        recyclerAdapter = new GifFeedRecyclerAdapter(getContext(), isViewModeStream);
         gifPlayManager = new GifPlayManager();
         recyclerAdapter.setGifPlayManager(gifPlayManager);
         recyclerAdapter.setImageSelectedListener(IMAGE_SELECTED_LISTENER);
@@ -169,7 +169,7 @@ public class SearchFragment extends android.support.v4.app.Fragment {
         }
     };
 
-    private final TrendingRecyclerAdapter.ImageSelectedListener IMAGE_SELECTED_LISTENER = new TrendingRecyclerAdapter.ImageSelectedListener() {
+    private final GifFeedRecyclerAdapter.ImageSelectedListener IMAGE_SELECTED_LISTENER = new GifFeedRecyclerAdapter.ImageSelectedListener() {
         @Override
         public void onImageSelected(GiphyTrendRespModel.Data imageData) {
             ContentValues contentValues = new ContentValues();

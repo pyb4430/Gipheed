@@ -23,7 +23,7 @@ import com.squareup.picasso.Picasso;
 /**
  * Created by Taylor on 9/13/2016.
  */
-public class TrendingRecyclerAdapter extends RecyclerView.Adapter<TrendingRecyclerAdapter.TrendingViewHolder> {
+public class GifFeedRecyclerAdapter extends RecyclerView.Adapter<GifFeedRecyclerAdapter.GifFeedViewHolder> {
     private static final String TAG = "TrendingRecyclerAdepter";
 
     private Context context;
@@ -37,11 +37,11 @@ public class TrendingRecyclerAdapter extends RecyclerView.Adapter<TrendingRecycl
 
     private boolean isViewModeStream;
 
-    public TrendingRecyclerAdapter(Context context, boolean isViewModeStream) {
+    public GifFeedRecyclerAdapter(Context context, boolean isViewModeStream) {
         this(context, isViewModeStream, null);
     }
 
-    public TrendingRecyclerAdapter(Context context, boolean isViewModeStream, String buttonText) {
+    public GifFeedRecyclerAdapter(Context context, boolean isViewModeStream, String buttonText) {
         this.context = context;
         sizer = Utils.getSizer(context);
         this.isViewModeStream = isViewModeStream;
@@ -76,24 +76,22 @@ public class TrendingRecyclerAdapter extends RecyclerView.Adapter<TrendingRecycl
     }
 
     @Override
-    public TrendingViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return new TrendingViewHolder(new FrameLayout(context));
+    public GifFeedViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        return new GifFeedViewHolder(new FrameLayout(context));
     }
-//
 
 
     @Override
-    public void onViewDetachedFromWindow(TrendingViewHolder holder) {
+    public void onViewDetachedFromWindow(GifFeedViewHolder holder) {
         super.onViewDetachedFromWindow(holder);
-//        holder.flGifPlayer.removeAllViews();
     }
 
     @Override
-    public void onViewRecycled(TrendingViewHolder holder) {
-        //TODO: Only play the first fully visible or first visible gif
+    public void onViewRecycled(GifFeedViewHolder holder) {
         gifPlayManager.removeGifPlayer(holder.getAdapterPosition());
         super.onViewRecycled(holder);
         holder.gifPlayer.stop();
+        holder.imageView.setVisibility(View.VISIBLE);
     }
 
     public void setButtonText(String text) {
@@ -101,7 +99,7 @@ public class TrendingRecyclerAdapter extends RecyclerView.Adapter<TrendingRecycl
     }
 
     @Override
-    public void onBindViewHolder(final TrendingViewHolder holder, final int position) {
+    public void onBindViewHolder(final GifFeedViewHolder holder, final int position) {
         Picasso.with(context).load(giphyTrendRespModel.data[position].images.fixed_height_still.url).into(holder.imageView);
 
         final float gifAspectRatio = (float) giphyTrendRespModel.data[position].images.fixed_height_still.height / (float) giphyTrendRespModel.data[position].images.fixed_height_still.width;
@@ -118,12 +116,12 @@ public class TrendingRecyclerAdapter extends RecyclerView.Adapter<TrendingRecycl
             });
         } else {
 
-            if(gifAspectRatio > (TrendingViewHolder.LIST_ITEM_HEIGHT/TrendingViewHolder.LIST_ITEM_WIDTH)) {
-                holder.imageView.setLayoutParams(new FrameLayout.LayoutParams((int) ((float) sizer.viewSize(TrendingViewHolder.LIST_ITEM_HEIGHT) / gifAspectRatio), sizer.viewSize(TrendingViewHolder.LIST_ITEM_HEIGHT)));
-                holder.gifPlayer.setLayoutParams(new FrameLayout.LayoutParams((int) ((float) sizer.viewSize(TrendingViewHolder.LIST_ITEM_HEIGHT) / gifAspectRatio), sizer.viewSize(TrendingViewHolder.LIST_ITEM_HEIGHT)));
+            if(gifAspectRatio > (GifFeedViewHolder.LIST_ITEM_HEIGHT/ GifFeedViewHolder.LIST_ITEM_WIDTH)) {
+                holder.imageView.setLayoutParams(new FrameLayout.LayoutParams((int) ((float) sizer.viewSize(GifFeedViewHolder.LIST_ITEM_HEIGHT) / gifAspectRatio), sizer.viewSize(GifFeedViewHolder.LIST_ITEM_HEIGHT)));
+                holder.gifPlayer.setLayoutParams(new FrameLayout.LayoutParams((int) ((float) sizer.viewSize(GifFeedViewHolder.LIST_ITEM_HEIGHT) / gifAspectRatio), sizer.viewSize(GifFeedViewHolder.LIST_ITEM_HEIGHT)));
             } else {
-                holder.imageView.setLayoutParams(new FrameLayout.LayoutParams(sizer.viewSize(TrendingViewHolder.LIST_ITEM_WIDTH), (int) ((float) sizer.viewSize(TrendingViewHolder.LIST_ITEM_WIDTH) * gifAspectRatio), Gravity.CENTER));
-                holder.gifPlayer.setLayoutParams(new FrameLayout.LayoutParams(sizer.viewSize(TrendingViewHolder.LIST_ITEM_WIDTH), (int) ((float) sizer.viewSize(TrendingViewHolder.LIST_ITEM_WIDTH) * gifAspectRatio), Gravity.CENTER));
+                holder.imageView.setLayoutParams(new FrameLayout.LayoutParams(sizer.viewSize(GifFeedViewHolder.LIST_ITEM_WIDTH), (int) ((float) sizer.viewSize(GifFeedViewHolder.LIST_ITEM_WIDTH) * gifAspectRatio), Gravity.CENTER));
+                holder.gifPlayer.setLayoutParams(new FrameLayout.LayoutParams(sizer.viewSize(GifFeedViewHolder.LIST_ITEM_WIDTH), (int) ((float) sizer.viewSize(GifFeedViewHolder.LIST_ITEM_WIDTH) * gifAspectRatio), Gravity.CENTER));
             }
 
             holder.favoriteBtn.setOnClickListener(new View.OnClickListener() {
@@ -144,7 +142,7 @@ public class TrendingRecyclerAdapter extends RecyclerView.Adapter<TrendingRecycl
                 }
             });
 
-            final ValueAnimator expandValAnimator = ValueAnimator.ofInt(sizer.viewSize(TrendingViewHolder.LIST_ITEM_WIDTH), sizer.viewSize(106));
+            final ValueAnimator expandValAnimator = ValueAnimator.ofInt(sizer.viewSize(GifFeedViewHolder.LIST_ITEM_WIDTH), sizer.viewSize(106));
             expandValAnimator.setDuration(400);
             expandValAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
             expandValAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
@@ -229,33 +227,12 @@ public class TrendingRecyclerAdapter extends RecyclerView.Adapter<TrendingRecycl
             });
         }
 
-//        final GifPlayer gifPlayer = new GifPlayer(context);
-//        gifPlayer.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-//        holder.flGifPlayer.addView(gifPlayer);
-
-
-//        ThreadManager.Run(new Runnable() {
-//            @Override
-//            public void run() {
-//                holder.gifPlayer.init(giphyTrendRespModel.data[holder.getAdapterPosition()].images.original.mp4);
-//            }
-//        });
-
         if(gifPlayManager != null) {
             Log.v(TAG, "GifPlayer added to GifPlayManager");
-            gifPlayManager.addGifPlayer(holder.getAdapterPosition(), holder.gifPlayer);
+            gifPlayManager.addGifPlayer(holder.getAdapterPosition(), holder);
         } else {
             Log.v(TAG, "GifPlayManager null");
         }
-
-//        holder.flMain.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if(imageSelectedListener != null) {
-//                    imageSelectedListener.onImageSelected(giphyTrendRespModel.data[holder.getAdapterPosition()]);
-//                }
-//            }
-//        });
 
         // My version of loading the images async, Picasso is better
 //        ThreadManager.Run(new Runnable() {
@@ -282,22 +259,22 @@ public class TrendingRecyclerAdapter extends RecyclerView.Adapter<TrendingRecycl
 
     }
 
-    class TrendingViewHolder extends RecyclerView.ViewHolder {
+    public class GifFeedViewHolder extends RecyclerView.ViewHolder {
 
         public static final float LIST_ITEM_HEIGHT = 42f;
         public static final float LIST_ITEM_WIDTH = 42f;
 
-        FrameLayout flMain;
-        ImageView imageView;
-        GifPlayer gifPlayer;
-        FrameLayout flGifPlayer;
-        FrameLayout botBorder;
+        public FrameLayout flMain;
+        public ImageView imageView;
+        public GifPlayer gifPlayer;
+        public FrameLayout flGifPlayer;
+        public FrameLayout botBorder;
 
-        Button favoriteBtn;
+        public Button favoriteBtn;
 
         boolean isExpanded = false;
 
-        public TrendingViewHolder(View view) {
+        public GifFeedViewHolder(View view) {
             super(view);
             flMain = (FrameLayout) view;
             flMain.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -317,13 +294,13 @@ public class TrendingRecyclerAdapter extends RecyclerView.Adapter<TrendingRecycl
             flGifPlayer.setLayoutParams(layoutParams);
             flMain.addView(flGifPlayer);
 
-            imageView = new ImageView(context);
-            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            flGifPlayer.addView(imageView);
-
             gifPlayer = new GifPlayer(context);
             gifPlayer.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             flGifPlayer.addView(gifPlayer);
+
+            imageView = new ImageView(context);
+            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            flGifPlayer.addView(imageView);
 
             favoriteBtn = new Button(context);
             layoutParams = new FrameLayout.LayoutParams(sizer.viewSize(28f), sizer.viewSize(12f), Gravity.CENTER_VERTICAL|Gravity.RIGHT);
@@ -344,10 +321,6 @@ public class TrendingRecyclerAdapter extends RecyclerView.Adapter<TrendingRecycl
         }
 
         private void initViewModeStream() {
-            imageView = new ImageView(context);
-            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            flMain.addView(imageView);
-
             flGifPlayer = new FrameLayout(context);
             flGifPlayer.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             flMain.addView(flGifPlayer);
@@ -355,10 +328,12 @@ public class TrendingRecyclerAdapter extends RecyclerView.Adapter<TrendingRecycl
             gifPlayer = new GifPlayer(context);
             gifPlayer.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             flMain.addView(gifPlayer);
+
+            imageView = new ImageView(context);
+            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            flMain.addView(imageView);
         }
     }
-
-
 
     public interface ImageSelectedListener {
         void onImageSelected(GiphyTrendRespModel.Data imageDate);

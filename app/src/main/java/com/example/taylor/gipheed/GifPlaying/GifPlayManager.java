@@ -5,6 +5,7 @@ import android.view.View;
 
 import com.example.taylor.gipheed.Giphy.GiphyTrendRespModel;
 import com.example.taylor.gipheed.ThreadManager;
+import com.example.taylor.gipheed.GifFeedRecyclerAdapter;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -18,10 +19,11 @@ public class GifPlayManager {
 
     private GiphyTrendRespModel giphyTrendRespModel;
 
-    private LinkedHashMap<Integer, GifPlayer> gifPlayers = new LinkedHashMap<>();
+    private Map<Integer, GifFeedRecyclerAdapter.GifFeedViewHolder> gifPlayerHolders = new LinkedHashMap<>();
 
     private int positionPlaying = -1;
-    // used to play the first gif in a new set that has been loaded
+
+    // this is used to play the first gif in a new set that has been loaded
     private boolean playNextAdded = false;
 
     public GifPlayManager() {
@@ -35,8 +37,8 @@ public class GifPlayManager {
         this.giphyTrendRespModel = giphyTrendRespModel;
     }
 
-    public void addGifPlayer(int listLocation, GifPlayer gifPlayer) {
-        gifPlayers.put(listLocation, gifPlayer);
+    public void addGifPlayer(int listLocation, GifFeedRecyclerAdapter.GifFeedViewHolder gifPlayerHolder) {
+        gifPlayerHolders.put(listLocation, gifPlayerHolder);
         if(playNextAdded) {
             if(positionPlaying == listLocation) {
                 positionPlaying = -1;
@@ -47,45 +49,60 @@ public class GifPlayManager {
     }
 
     public void removeGifPlayer(int listLocation) {
-        gifPlayers.remove(listLocation);
+        gifPlayerHolders.remove(listLocation);
     }
 
     public void playGif(final int listLocation) {
-        if(giphyTrendRespModel != null && positionPlaying != listLocation) {
+        if(giphyTrendRespModel != null) {
+            if(positionPlaying == listLocation && gifPlayerHolders.get(positionPlaying).gifPlayer.isPlaying()) {
+                return;
+            }
             try {
-                Log.v(TAG, "stopping gifPlayers: " + gifPlayers.size());
-                for(Map.Entry gifPlayer : gifPlayers.entrySet()) {
-                    if((Integer)gifPlayer.getKey() != listLocation) {
-                        ((GifPlayer) gifPlayer.getValue()).stop();
-                    }
-                }
-                if(positionPlaying > -1) {
-                    final GifPlayer lastPlayer = gifPlayers.get(positionPlaying);
-                    if (lastPlayer != null) {
-                        lastPlayer.stop();
+                Log.v(TAG, "stopping gifPlayerHolders: " + gifPlayerHolders.size());
+
+                for(Map.Entry<Integer, GifFeedRecyclerAdapter.GifFeedViewHolder> gifPlayerEntry : gifPlayerHolders.entrySet()) {
+                    if(gifPlayerEntry.getKey() != listLocation) {
+                        Log.v(TAG, "stopping gifPlayer: " + gifPlayerEntry.getKey());
+                        gifPlayerEntry.getValue().gifPlayer.stop();
+                        gifPlayerEntry.getValue().imageView.setVisibility(View.VISIBLE);
                     }
                 }
             } catch (Exception e) {
                 Log.v(TAG, e.getMessage());
             }
 
-            final GifPlayer player = gifPlayers.get(listLocation);
-            if (player != null) {
+            final GifFeedRecyclerAdapter.GifFeedViewHolder holder = gifPlayerHolders.get(listLocation);
+            if (holder != null && holder.gifPlayer != null) {
                 final String url = giphyTrendRespModel.data[listLocation].images.original.mp4;
                 Log.v(TAG, "starting gif url: " + url);
-                player.setVisibility(View.VISIBLE);
+
+                // Used a 250 ms delay here to smooth the apparent delay between the MediaPlayer.OnPreparedListener
+                // callback and the MediaPlayer actually playing the video on some phones. May cause
+                // a skipped gif frame or two on faster phones, but it will only occur the first time
+                // (better than the few frames of white background that occur without the delay)
+                final GifPlayer.PlayerPreparedListener playerPreparedListener = new GifPlayer.PlayerPreparedListener() {
+                    @Override
+                    public void onPlayerPrepared() {
+                        ThreadManager.RunUIWait(new Runnable() {
+                            @Override
+                            public void run() {
+                                Log.v(TAG, "gifPlayer set to visible: " + listLocation);
+                                holder.imageView.setVisibility(View.INVISIBLE);
+                            }
+                        }, 250);
+                    }
+                };
                 ThreadManager.Run(new Runnable() {
                     @Override
                     public void run() {
-                        player.init(url);
+                        holder.gifPlayer.init(url, playerPreparedListener);
                     }
                 });
                 positionPlaying = listLocation;
             } else {
-                gifPlayers.remove(listLocation);
+                gifPlayerHolders.remove(listLocation);
                 Log.v(TAG, "failed to start gif because player is null");
             }
-
         }
     }
 }

@@ -10,6 +10,8 @@ import android.view.TextureView;
 
 import com.example.taylor.gipheed.Utils;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * Created by Taylor on 9/14/2016.
  */
@@ -18,28 +20,30 @@ public class GifPlayer extends TextureView implements TextureView.SurfaceTexture
     private static final String TAG = "GifPlayer";
 
     private boolean surfaceTextureReady = false;
-    private PlayerReadyListener playerReadyListener;
     private MediaPlayer mp;
     private Utils.Sizer sizer;
 
     private String url;
+
+    private AtomicBoolean isPlaying = new AtomicBoolean(false);
+
+    private PlayerPreparedListener playerPreparedListener;
 
     public GifPlayer(Context context) {
         super(context);
         setSurfaceTextureListener(this);
     }
 
-    public void setPlayerReadyListener(PlayerReadyListener playerReadyListener) {
-        this.playerReadyListener = playerReadyListener;
+    public boolean isPlaying() {
+        return isPlaying.get();
     }
 
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
         surfaceTextureReady = true;
-        if(playerReadyListener != null ) {
-            playerReadyListener.onPlayerReady();
+        if(url != null) {
+            init(url);
         }
-        init(url);
     }
 
     @Override
@@ -88,64 +92,66 @@ public class GifPlayer extends TextureView implements TextureView.SurfaceTexture
         }
     }
 
-    // TODO: Finish this:
-    // an attempt to eliminate the brief black rectangle when a gif starts playin (the GifPlayer is getting
-    // shown before the MediaPlayer is initialized)
-    public boolean init(final String url, final PlayerReadyListener playerReadyListener) {
+    public boolean init(final String url, final PlayerPreparedListener playerPreparedListener) {
         this.url = url;
-        Log.v(TAG, "init start, isAvailable: " + isAvailable());
+        this.playerPreparedListener = playerPreparedListener;
+        Log.v(TAG, "init start, isAvailable: " + isAvailable() + " " + url);
         if(isAvailable() && url != null) {
             Log.v(TAG, "gif mp4 url: " + url);
             SurfaceTexture surfaceTexture = getSurfaceTexture();
             Surface surface = new Surface(surfaceTexture);
 
+            if(mp != null && mp.isPlaying()) {
+                stop();
+            }
             mp = new MediaPlayer();
             mp.setSurface(surface);
             try {
                 mp.setDataSource(getContext(), Uri.parse(url));
-                playerReadyListener.onPlayerReady();
                 play();
             } catch (Exception e) {
                 Log.v(TAG, e.getMessage());
             }
             return true;
         } else {
-//            this.initFinishedListener = playerReadyListener;
             setSurfaceTextureListener(this);
             return false;
         }
     }
 
     public void play() {
-            Log.v(TAG, "gif mp4 start play");
-            try {
-                mp.prepareAsync();
-                mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                    public void onPrepared(MediaPlayer mp) {
-                        mp.setLooping(true);
-                        mp.start();
+        isPlaying.set(true);
+        Log.v(TAG, "gif mp4 start play");
+        try {
+            mp.prepareAsync();
+            mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                public void onPrepared(MediaPlayer mp) {
+                    mp.setLooping(true);
+                    mp.start();
+                    if(playerPreparedListener != null) {
+                        playerPreparedListener.onPlayerPrepared();
                     }
-                });
-            } catch (Exception e) {
-                Log.v(TAG, e.getMessage());
-            }
+                }
+            });
+        } catch (Exception e) {
+            isPlaying.set(false);
+            Log.v(TAG, e.getMessage());
+        }
     }
 
     public void stop() {
-        setVisibility(INVISIBLE);
+        url = null;
+        isPlaying.set(false);
         if(mp != null) {
             mp.stop();
             mp.reset();
             mp.release();
             mp = null;
         }
+
     }
 
-    public interface PlayerReadyListener {
-        void onPlayerReady();
+    public interface PlayerPreparedListener {
+        void onPlayerPrepared();
     }
-
-//    public interface InitFinishedListener {
-//        public void onInitFinished();
-//    }
 }

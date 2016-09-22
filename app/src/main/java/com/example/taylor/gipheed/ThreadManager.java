@@ -2,6 +2,7 @@ package com.example.taylor.gipheed;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.concurrent.TimeUnit;
  * Created by Taylor on 9/11/2016.
  */
 public class ThreadManager {
+    private static final String TAG = "ThreadManager";
 
     static final ThreadManager sInstance;
 
@@ -43,6 +45,21 @@ public class ThreadManager {
 
     public static synchronized void RunUI(Runnable task) {
         handlerUI.post(task);
+    }
+
+    public static synchronized void RunUIWait(final Runnable task, final long sleepTime) {
+        Future taskFuture = threadPoolExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(sleepTime);
+                } catch (Exception e) {
+                    Log.v(TAG, "sleep failed in RunUIWait: " + e.getMessage());
+                }
+                handlerUI.post(task);
+            }
+        });
+        runningTasks.add(new WeakReference<Future>(taskFuture));
     }
 
     public static synchronized void Run(Runnable task) {

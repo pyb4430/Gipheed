@@ -21,7 +21,7 @@ import com.example.taylor.gipheed.Fragments.TrendingFragment;
 import com.example.taylor.gipheed.Giphy.GiphyController;
 import com.example.taylor.gipheed.Giphy.GiphyTrendRespModel;
 import com.example.taylor.gipheed.ThreadManager;
-import com.example.taylor.gipheed.TrendingRecyclerAdapter;
+import com.example.taylor.gipheed.GifFeedRecyclerAdapter;
 import com.example.taylor.gipheed.Utils;
 
 public class MainActivity extends AppCompatActivity {
@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
     private GifPlayFragment gifPlayFragment;
 
     private RecyclerView recyclerView;
-    private TrendingRecyclerAdapter recyclerAdapter;
+    private GifFeedRecyclerAdapter recyclerAdapter;
 
     private GiphyTrendRespModel giphyTrendRespModel;
 

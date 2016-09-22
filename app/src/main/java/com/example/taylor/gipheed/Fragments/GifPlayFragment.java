@@ -45,9 +45,9 @@ public class GifPlayFragment extends android.support.v4.app.Fragment {
 //        gifPlayer.play();
     }
 
-    private final GifPlayer.PlayerReadyListener PLAYER_READY_LISTENER = new GifPlayer.PlayerReadyListener() {
+    private final GifPlayer.PlayerPreparedListener PLAYER_READY_LISTENER = new GifPlayer.PlayerPreparedListener() {
         @Override
-        public void onPlayerReady() {
+        public void onPlayerPrepared() {
             gifPlayer.init("http://media2.giphy.com/media/FiGiRei2ICzzG/giphy.mp4");
             gifPlayer.play();
         }
