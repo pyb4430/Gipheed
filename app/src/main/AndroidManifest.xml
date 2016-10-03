@@ -30,6 +30,10 @@
         <activity android:name="com.example.taylor.gipheed.Activities.LoadGifActivity">
 
         </activity>
+
+        <activity android:name=".Activities.GifDetailActivity">
+
+        </activity>
         
         <provider
             android:authorities="com.openglpractice.app.provider"

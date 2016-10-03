@@ -68,6 +68,21 @@ public class ThreadManager {
         runningTasks.add(new WeakReference<Future>(taskFuture));
     }
 
+    public static synchronized void RunWait(final Runnable task, final long sleepTime) {
+        Future taskFuture = threadPoolExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(sleepTime);
+                } catch (Exception e) {
+                    Log.v(TAG, "sleep failed in RunUIWait: " + e.getMessage());
+                }
+                task.run();
+            }
+        });
+        runningTasks.add(new WeakReference<Future>(taskFuture));
+    }
+
     public static synchronized void Cancel(Thread thread) {
         synchronized (sInstance) {
             if(thread != null) {

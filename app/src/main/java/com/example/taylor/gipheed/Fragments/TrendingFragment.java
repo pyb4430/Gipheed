@@ -1,6 +1,7 @@
 package com.example.taylor.gipheed.Fragments;
 
 import android.content.ContentValues;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -12,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
+import com.example.taylor.gipheed.Activities.GifDetailActivity;
 import com.example.taylor.gipheed.Activities.MainActivityV2;
 import com.example.taylor.gipheed.ContentProvider.FavDataContract;
 import com.example.taylor.gipheed.GifPlaying.GifPlayManager;
@@ -19,6 +21,16 @@ import com.example.taylor.gipheed.Giphy.GiphyController;
 import com.example.taylor.gipheed.Giphy.GiphyTrendRespModel;
 import com.example.taylor.gipheed.ThreadManager;
 import com.example.taylor.gipheed.GifFeedRecyclerAdapter;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.UUID;
 
 /**
  * Created by Taylor on 9/13/2016.
@@ -145,7 +157,57 @@ public class TrendingFragment extends android.support.v4.app.Fragment {
         }
 
         @Override
-        public void onGifDetailClick(int position) {
+        public void onGifDetailClick(final int position) {
+            ThreadManager.Run(new Runnable() {
+                @Override
+                public void run() {
+                    BufferedOutputStream bos = null;
+                    BufferedInputStream bis = null;
+                    File tempVidFile = null;
+                    try {
+                        String videoUrl = giphyTrendRespModel.data[position].images.fixed_height.mp4;
+                        URL url = new URL(videoUrl);
+                        URLConnection connection = url.openConnection();
+                        bis = new BufferedInputStream(connection.getInputStream());
+
+                        String fileName = Uri.parse(videoUrl).getLastPathSegment();
+                        tempVidFile = File.createTempFile(fileName, null, getContext().getCacheDir());
+                        bos = new BufferedOutputStream(new FileOutputStream(tempVidFile));
+
+                        int byteRead;
+                        while((byteRead = bis.read()) > -1) {
+                            bos.write(byteRead);
+                        }
+
+                    } catch (IOException e){
+                        Log.v(TAG, e.getMessage());
+                    } finally {
+                        try {
+                            if (bos != null) {
+                                bos.close();
+                            }
+                            if(bis != null) {
+                                bis.close();
+                            }
+                        } catch (IOException e) {
+
+                        }
+                    }
+
+                    final String tempVidFileName = tempVidFile != null ? tempVidFile.getAbsolutePath() : null;
+
+                    ThreadManager.RunUI(new Runnable() {
+                        @Override
+                        public void run() {
+                            Intent intent = new Intent(getContext(), GifDetailActivity.class);
+                            if(tempVidFileName != null) {
+                                intent.putExtra("gifUrl", tempVidFileName);
+                                startActivity(intent);
+                            }
+                        }
+                    });
+                }
+            });
 
         }
 

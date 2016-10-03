@@ -128,9 +128,10 @@ public class GifFeedRecyclerAdapter extends RecyclerView.Adapter<GifFeedRecycler
                 @Override
                 public void onClick(View v) {
                     if(imageSelectedListener != null) {
-                            imageSelectedListener.onImageSelected(giphyTrendRespModel.data[holder.getAdapterPosition()]);
-                        }
+//                            imageSelectedListener.onImageSelected(giphyTrendRespModel.data[holder.getAdapterPosition()]);
+                        imageSelectedListener.onGifDetailClick(holder.getAdapterPosition());
                     }
+                }
             });
 
             holder.flMain.setOnClickListener(new View.OnClickListener() {
