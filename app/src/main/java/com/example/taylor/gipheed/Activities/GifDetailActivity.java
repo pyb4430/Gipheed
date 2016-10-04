@@ -141,6 +141,7 @@ public class GifDetailActivity extends AppCompatActivity implements TextureView.
     protected void onStop() {
         if(movieDecoder != null) {
             movieDecoder.setStopPlaybackFlag(true);
+            movieDecoder.releaseResources();
         }
         super.onStop();
     }

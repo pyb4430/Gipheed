@@ -104,19 +104,35 @@ public class MovieDecoder {
         }
     }
 
+    private int lastFrameSought;
     public void goToFrame(int frameNumber) {
         Log.v(TAG, "go to frame: " + frameNumber);
-        stopPlaybackFlag = true;
-        getFrame(frameNumber);
+        if(lastFrameSought < frameNumber) {
+            getFrame(frameNumber, false);
+        } else {
+            stopPlaybackFlag = true;
+            getFrame(frameNumber, true);
+        }
+        lastFrameSought = frameNumber;
     }
 
-    private synchronized void getFrame(int frameNumber) {
+    private synchronized void getFrame(int frameNumber, boolean needSeek) {
         ByteBuffer[] inputBuffers = vidDecoder.getInputBuffers();
 
         // Calculate the target presentationTime
         long targetPresTime = (long) (((float)frameNumber / (float)frameCount)*(float)lastSampleTime);
 
-        vidExtractor.seekTo(targetPresTime, MediaExtractor.SEEK_TO_PREVIOUS_SYNC);
+        if(needSeek) {
+            if(lastFrameSought < frameNumber) {
+                return;
+            }
+            vidDecoder.flush();
+            vidExtractor.seekTo(targetPresTime, MediaExtractor.SEEK_TO_PREVIOUS_SYNC);
+        } else {
+            if(lastFrameSought > frameNumber) {
+                return;
+            }
+        }
 
         stopPlaybackFlag = false;
         boolean inputDone = false;
@@ -178,7 +194,19 @@ public class MovieDecoder {
             }
         }
         stopPlaybackFlag = false;
-        vidDecoder.flush();
+//        vidDecoder.flush();
+    }
+
+    public void releaseResources() {
+        if(vidDecoder != null) {
+            vidDecoder.stop();
+            vidDecoder.release();
+            vidDecoder = null;
+        }
+        if(vidExtractor != null) {
+            vidExtractor.release();
+            vidExtractor = null;
+        }
     }
 
     public void decode(String videoUrl, Surface surface) {
@@ -321,5 +349,26 @@ public class MovieDecoder {
         void metaDataRetrieved(int width, int height, int numberOfFrames, long lastSampleTime);
     }
 
+    private class SeekingThread extends Thread {
 
+        private SeekingHandler mSeekingHandler;
+
+        public SeekingThread() {
+            mSeekingHandler = new SeekingHandler();
+        }
+
+        @Override
+        public void run() {
+            super.run();
+            mSeekingHandler.obtainMessage();
+        }
+
+        public synchronized void setTargetFrame(int targetFrame) {
+
+        }
+
+        private class SeekingHandler extends Handler {
+
+        }
+    }
 }
