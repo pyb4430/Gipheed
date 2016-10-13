@@ -12,6 +12,8 @@ import android.os.HandlerThread;
 import android.util.Log;
 import android.view.Surface;
 
+import com.example.taylor.gipheed.ThreadManager;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -33,6 +35,8 @@ public class MovieDecoder {
     private volatile boolean stopPlaybackFlag = false;
 
     private DecodeCallback decodeCallback;
+
+    private SeekRunnable seekRunnable;
 
     public MovieDecoder(DecodeCallback decodeCallback) {
         this.decodeCallback = decodeCallback;
@@ -99,6 +103,8 @@ public class MovieDecoder {
             vidDecoder.configure(mediaFormat, surface, null, 0);
             vidDecoder.start();
 
+            seekRunnable = new SeekRunnable(vidDecoder, vidExtractor, frameCount, lastSampleTime);
+            ThreadManager.Run(seekRunnable);
         } catch (IOException e) {
             Log.e(TAG, "decode error: " + e.getMessage());
         }
@@ -345,30 +351,122 @@ public class MovieDecoder {
         this.stopPlaybackFlag = stopPlaybackFlag;
     }
 
+    public void goToFrame2(int frame) {
+        seekRunnable.goToFrame(frame);
+    }
+
+    public void stopSeeking() {
+        seekRunnable.stopSeeking();
+    }
+
+    public void onlyRenderTarget() {
+        seekRunnable.onlyRenderTarget();
+    }
+
     public interface DecodeCallback {
         void metaDataRetrieved(int width, int height, int numberOfFrames, long lastSampleTime);
     }
 
-    private class SeekingThread extends Thread {
 
-        private SeekingHandler mSeekingHandler;
+    private static class SeekRunnable implements Runnable {
 
-        public SeekingThread() {
-            mSeekingHandler = new SeekingHandler();
+        private MediaCodec vidDecoder;
+        private MediaExtractor vidExtractor;
+        private int frameCount;
+        private long lastSampleTime = 0;
+
+        private int targetFrame = 0;
+        private int lastTargetFrame = 0;
+
+        private boolean stopSeeking = false;
+        private boolean shouldRender = false;
+
+        public SeekRunnable(MediaCodec vidDecoder, MediaExtractor vidExtractor, int frameCount, long lastSampleTime) {
+            this.vidDecoder = vidDecoder;
+            this.vidExtractor = vidExtractor;
+            this.frameCount = frameCount;
+            this.lastSampleTime = lastSampleTime;
+        }
+
+        public synchronized void goToFrame(int targetFrame) {
+            this.targetFrame = targetFrame;
+        }
+
+        public void stopSeeking() {
+            this.stopSeeking = true;
+        }
+
+        public synchronized void onlyRenderTarget() {
+            shouldRender = false;
         }
 
         @Override
         public void run() {
-            super.run();
-            mSeekingHandler.obtainMessage();
-        }
+            MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+            ByteBuffer[] inputBuffers = vidDecoder.getInputBuffers();
+            long targetPresTime = 0;
+            boolean outputDone = true;
+            // We want all frames to render when seeking forward, but only the target frame should render when seeking backwards
+            shouldRender = true;
 
-        public synchronized void setTargetFrame(int targetFrame) {
+            while(!stopSeeking) {
+                if(targetFrame != lastTargetFrame) {
+                    // Calculate the target presentationTime
+                    targetPresTime = (long) (((float) targetFrame / (float) frameCount) * (float) lastSampleTime);
 
-        }
+                    if (targetFrame < lastTargetFrame) {
+                        vidDecoder.flush();
+                        // dont think this is necessary
+//                        inputBuffers = vidDecoder.getInputBuffers();
+                        vidExtractor.seekTo(targetPresTime, MediaExtractor.SEEK_TO_PREVIOUS_SYNC);
+                        shouldRender = false;
+                    } else {
+                        shouldRender = true;
+                    }
 
-        private class SeekingHandler extends Handler {
+                    // We want to start reading frames
+                    outputDone = false;
 
+                    lastTargetFrame = targetFrame;
+                }
+
+                if(!outputDone) {
+                    Log.v(TAG, "seek decoding work loop");
+                    int inputBufferId = vidDecoder.dequeueInputBuffer(20000);
+                    if (inputBufferId >= 0) {
+                        int chunkSize = vidExtractor.readSampleData(inputBuffers[inputBufferId], 0);
+
+                        if (chunkSize >= 0) {
+                            long presentationTime = vidExtractor.getSampleTime();
+
+                            if (presentationTime >= targetPresTime) {
+                                Log.v(TAG, "input done: " + presentationTime + " " + targetPresTime);
+                            }
+                            // fill inputBuffers[inputBufferId] with valid data
+                            vidDecoder.queueInputBuffer(inputBufferId, 0, chunkSize, presentationTime, 0);
+                        }
+                        vidExtractor.advance();
+                    }
+
+                    int outputBufferId = vidDecoder.dequeueOutputBuffer(bufferInfo, 20000);
+                    Log.v(TAG, "outputBufferId: " + outputBufferId);
+
+                    if (outputBufferId >= 0) {
+                        if (bufferInfo.size != 0) {
+                            if (bufferInfo.presentationTimeUs >= targetPresTime) {
+                                outputDone = true;
+                                shouldRender = true;
+                                Log.v(TAG, "rendering frame: " + bufferInfo.presentationTimeUs + " " + targetPresTime);
+                            }
+                            vidDecoder.releaseOutputBuffer(outputBufferId, shouldRender);
+                        }
+                    } else if (outputBufferId == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
+//                      outputBuffers = codec.getOutputBuffers();
+                    } else if (outputBufferId == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+//                      MediaFormat format = vidDecoder.getOutputFormat();
+                    }
+                }
+            }
         }
     }
 }

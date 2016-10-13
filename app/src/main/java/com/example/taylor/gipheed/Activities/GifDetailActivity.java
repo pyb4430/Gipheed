@@ -52,15 +52,7 @@ public class GifDetailActivity extends AppCompatActivity implements TextureView.
         llMain.setOrientation(LinearLayout.VERTICAL);
         setContentView(llMain);
 
-
-
         gifUrl = getIntent().getStringExtra("gifUrl");
-
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
 
         textureView = new TextureView(this);
         textureView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -97,6 +89,14 @@ public class GifDetailActivity extends AppCompatActivity implements TextureView.
         layoutParams.topMargin = sizer.viewSize(5);
         seekBar.setLayoutParams(layoutParams);
         llMain.addView(seekBar);
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+
     }
 
     @Override
@@ -140,8 +140,9 @@ public class GifDetailActivity extends AppCompatActivity implements TextureView.
     @Override
     protected void onStop() {
         if(movieDecoder != null) {
-            movieDecoder.setStopPlaybackFlag(true);
-            movieDecoder.releaseResources();
+//            movieDecoder.setStopPlaybackFlag(true);
+//            movieDecoder.releaseResources();
+            movieDecoder.stopSeeking();
         }
         super.onStop();
     }
@@ -164,12 +165,7 @@ public class GifDetailActivity extends AppCompatActivity implements TextureView.
         @Override
         public void onProgressChanged(SeekBar seekBar, final int progress, boolean fromUser) {
             Log.v(TAG, "seekbar seeked to: " + progress + "/" + seekBar.getMax());
-            ThreadManager.Run(new Runnable() {
-                @Override
-                public void run() {
-                    movieDecoder.goToFrame(progress);
-                }
-            });
+            movieDecoder.goToFrame2(progress);
         }
 
         @Override
@@ -179,7 +175,7 @@ public class GifDetailActivity extends AppCompatActivity implements TextureView.
 
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
-
+//            movieDecoder.onlyRenderTarget();
         }
     };
 }
