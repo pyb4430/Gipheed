@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 import com.example.taylor.gipheed.Activities.GifDetailActivity;
+import com.example.taylor.gipheed.Activities.GifDetailActivityV2;
 import com.example.taylor.gipheed.Activities.MainActivityV2;
 import com.example.taylor.gipheed.ContentProvider.FavDataContract;
 import com.example.taylor.gipheed.GifPlaying.GifPlayManager;
@@ -199,7 +200,7 @@ public class TrendingFragment extends android.support.v4.app.Fragment {
                     ThreadManager.RunUI(new Runnable() {
                         @Override
                         public void run() {
-                            Intent intent = new Intent(getContext(), GifDetailActivity.class);
+                            Intent intent = new Intent(getContext(), GifDetailActivityV2.class);
                             if(tempVidFileName != null) {
                                 intent.putExtra("gifUrl", tempVidFileName);
                                 startActivity(intent);

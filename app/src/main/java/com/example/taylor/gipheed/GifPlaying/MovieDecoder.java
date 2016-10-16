@@ -7,15 +7,26 @@ import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.media.MediaMetadata;
 import android.media.MediaMetadataRetriever;
+import android.opengl.EGL14;
+import android.opengl.EGLConfig;
+import android.opengl.EGLContext;
+import android.opengl.EGLDisplay;
+import android.opengl.EGLSurface;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
 import android.view.Surface;
 
+import com.example.taylor.gipheed.Activities.GifDetailActivity;
+import com.example.taylor.gipheed.Activities.GifDetailActivityV2;
 import com.example.taylor.gipheed.ThreadManager;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+
+import javax.microedition.khronos.egl.EGL10;
+
+import static android.opengl.EGL14.EGL_OPENGL_ES2_BIT;
 
 /**
  * Created by Taylor on 9/14/2016.
@@ -79,7 +90,7 @@ public class MovieDecoder {
         }
     }
 
-    public void prepForSeeking(String videoUrl, Surface surface) {
+    public void prepForSeeking(String videoUrl, Surface surface, GifDetailActivityV2.GifEditingThread gifEditingThread) {
         getVideoMetaData(videoUrl);
         try {
             vidExtractor= new MediaExtractor();
@@ -103,8 +114,11 @@ public class MovieDecoder {
             vidDecoder.configure(mediaFormat, surface, null, 0);
             vidDecoder.start();
 
+
             seekRunnable = new SeekRunnable(vidDecoder, vidExtractor, frameCount, lastSampleTime);
+            seekRunnable.setGifEditingThread(gifEditingThread);
             ThreadManager.Run(seekRunnable);
+
         } catch (IOException e) {
             Log.e(TAG, "decode error: " + e.getMessage());
         }
@@ -381,11 +395,17 @@ public class MovieDecoder {
         private boolean stopSeeking = false;
         private boolean shouldRender = false;
 
+        private GifDetailActivityV2.GifEditingThread gifEditingThread;
+
         public SeekRunnable(MediaCodec vidDecoder, MediaExtractor vidExtractor, int frameCount, long lastSampleTime) {
             this.vidDecoder = vidDecoder;
             this.vidExtractor = vidExtractor;
             this.frameCount = frameCount;
             this.lastSampleTime = lastSampleTime;
+        }
+
+        public void setGifEditingThread(GifDetailActivityV2.GifEditingThread gifEditingThread) {
+            this.gifEditingThread = gifEditingThread;
         }
 
         public synchronized void goToFrame(int targetFrame) {
@@ -459,6 +479,9 @@ public class MovieDecoder {
                                 Log.v(TAG, "rendering frame: " + bufferInfo.presentationTimeUs + " " + targetPresTime);
                             }
                             vidDecoder.releaseOutputBuffer(outputBufferId, shouldRender);
+                            if(shouldRender && gifEditingThread != null) {
+                                gifEditingThread.updateFrame();
+                            }
                         }
                     } else if (outputBufferId == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
 //                      outputBuffers = codec.getOutputBuffers();

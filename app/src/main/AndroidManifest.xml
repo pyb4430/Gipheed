@@ -31,7 +31,7 @@
 
         </activity>
 
-        <activity android:name=".Activities.GifDetailActivity">
+        <activity android:name=".Activities.GifDetailActivityV2">
 
         </activity>
         

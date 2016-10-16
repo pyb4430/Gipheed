@@ -105,7 +105,7 @@ public class GifDetailActivity extends AppCompatActivity implements TextureView.
             @Override
             public void run() {
                 movieDecoder = new MovieDecoder(DECODE_CALLBACK);
-                movieDecoder.prepForSeeking(gifUrl, new Surface(surface));
+                movieDecoder.prepForSeeking(gifUrl, new Surface(surface), null);
                 seekBar.setOnSeekBarChangeListener(SEEK_LISTENER);
 //                movieDecoder.decode(gifUrl, new Surface(surface));
             }
