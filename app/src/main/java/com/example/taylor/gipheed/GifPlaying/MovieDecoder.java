@@ -48,6 +48,7 @@ import android.view.Surface;
 
 import com.example.taylor.gipheed.Activities.GifDetailActivity;
 import com.example.taylor.gipheed.Activities.GifDetailActivityV2;
+import com.example.taylor.gipheed.OpenGL.GifEditingThread;
 import com.example.taylor.gipheed.ThreadManager;
 
 import java.io.IOException;
@@ -143,7 +144,7 @@ public class MovieDecoder {
         }
     }
 
-    public void prepForSeeking(String videoUrl, Surface surface, GifDetailActivityV2.GifEditingThread gifEditingThread) {
+    public void prepForSeeking(String videoUrl, Surface surface, GifEditingThread gifEditingThread) {
         getVideoMetaData(videoUrl);
         try {
             vidExtractor= new MediaExtractor();
@@ -448,7 +449,7 @@ public class MovieDecoder {
         private boolean stopSeeking = false;
         private boolean shouldRender = false;
 
-        private GifDetailActivityV2.GifEditingThread gifEditingThread;
+        private GifEditingThread gifEditingThread;
 
         public SeekRunnable(MediaCodec vidDecoder, MediaExtractor vidExtractor, int frameCount, long lastSampleTime) {
             this.vidDecoder = vidDecoder;
@@ -457,7 +458,7 @@ public class MovieDecoder {
             this.lastSampleTime = lastSampleTime;
         }
 
-        public void setGifEditingThread(GifDetailActivityV2.GifEditingThread gifEditingThread) {
+        public void setGifEditingThread(GifEditingThread gifEditingThread) {
             this.gifEditingThread = gifEditingThread;
         }
 
