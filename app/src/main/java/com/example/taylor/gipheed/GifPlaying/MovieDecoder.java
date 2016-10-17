@@ -70,6 +70,9 @@ public class MovieDecoder {
     private int frameCount;
     private long lastSampleTime;
 
+    private float width;
+    private float height;
+
     private MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
 
     private volatile boolean stopPlaybackFlag = false;
@@ -80,6 +83,25 @@ public class MovieDecoder {
 
     public MovieDecoder(DecodeCallback decodeCallback) {
         this.decodeCallback = decodeCallback;
+    }
+
+    public void getVideoSize(String videoUrl) {
+        MediaMetadataRetriever metadataRetriever = new MediaMetadataRetriever();
+        metadataRetriever.setDataSource(videoUrl);
+        String duration = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+        width = Float.parseFloat(metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
+        height = Float.parseFloat(metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
+
+        Log.v(TAG, "duration: " + duration + " " + lastSampleTime);
+        metadataRetriever.release();
+    }
+
+    public float getWidth() {
+        return width;
+    }
+
+    public float getHeight() {
+        return height;
     }
 
     public void getVideoMetaData(String videoUrl) {
@@ -104,12 +126,14 @@ public class MovieDecoder {
             Log.v(TAG, "number of frames: " + frameCount + " " + lastSampleTime);
             mediaExtractor.seekTo(0, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
 
-
-            MediaMetadataRetriever metadataRetriever = new MediaMetadataRetriever();
-            metadataRetriever.setDataSource(videoUrl);
-            String duration = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-            Log.v(TAG, "duration: " + duration + " " + lastSampleTime);
-            metadataRetriever.release();
+//            MediaMetadataRetriever metadataRetriever = new MediaMetadataRetriever();
+//            metadataRetriever.setDataSource(videoUrl);
+//            String duration = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+//            width = Float.parseFloat(metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
+//            height = Float.parseFloat(metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
+//
+//            Log.v(TAG, "duration: " + duration + " " + lastSampleTime);
+//            metadataRetriever.release();
 
             if(decodeCallback != null) {
                 decodeCallback.metaDataRetrieved(mediaFormat.getInteger(MediaFormat.KEY_WIDTH), mediaFormat.getInteger(MediaFormat.KEY_HEIGHT), frameCount, lastSampleTime);

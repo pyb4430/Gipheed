@@ -15,7 +15,7 @@ public class Triangle {
     public final int mPrgram;
 
     static final int COORDS_PER_VERTEX = 3;
-    static float triangleCoords[] = {0, 0.6f, 0, -0.5f, 0, -.3f, 0, 0.5f, -.3f, 0 };
+    static float triangleCoords[] = {1, 0.6f, 0, -0.5f, 0, -.3f, 0, 0.5f, -.3f, 0 };
 
     float color[] = {0, 1f, 0, 1f};
 

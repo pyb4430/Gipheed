@@ -58,20 +58,21 @@ public class GifFrameRect {
     };
 
     private final float[] FRAGMENT_COORDS = {
-            0, 1,
-            1, 1,
-            0, 0,
-            1, 0
+            0.0f, 0.0f,
+            1.0f, 0.0f,
+            0.0f, 1.0f,
+            1.0f, 1.0f
     };
 
     private static final String VERTEX_SHADER =
+            "uniform mat4 uTexMatrix;" +
             "attribute vec4 position;" +
-            "attribute vec2 vertexTexCoord;" +
+            "attribute vec4 vertexTexCoord;" +
             "varying vec2 fragmentTexCoord;" +
             "void main ()" +
             "{" +
                 "gl_Position = position;" +
-                "fragmentTexCoord = vertexTexCoord;" +
+                "fragmentTexCoord = (uTexMatrix*vertexTexCoord).xy;" +
             "}"
             ;
 
@@ -105,6 +106,7 @@ public class GifFrameRect {
     // program variable handles
     private int vertexPositionHandle;
     private int vertexTexCoordHandle;
+    private int uTexMatrixHandle;
 
     public GifFrameRect() {
         GLES20.glCreateShader(GLES20.GL_VERTEX_SHADER);
@@ -137,7 +139,7 @@ public class GifFrameRect {
 
     }
 
-    public void draw(int textureId) {
+    public void draw(int textureId, float[] transformMatrix) {
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
@@ -149,12 +151,15 @@ public class GifFrameRect {
 
         vertexPositionHandle = GLES20.glGetAttribLocation(programPointer, "position");
         vertexTexCoordHandle = GLES20.glGetAttribLocation(programPointer, "vertexTexCoord");
+        uTexMatrixHandle = GLES20.glGetUniformLocation(programPointer, "uTexMatrix");
 
         GLES20.glEnableVertexAttribArray(vertexPositionHandle);
         GLES20.glVertexAttribPointer(vertexPositionHandle, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, vertexBuffer);
 
         GLES20.glEnableVertexAttribArray(vertexTexCoordHandle);
         GLES20.glVertexAttribPointer(vertexTexCoordHandle, COORDS_PER_FRAGMENT_VERTEX, GLES20.GL_FLOAT, false, fragmentStride, fragmentBuffer);
+
+        GLES20.glUniformMatrix4fv(uTexMatrixHandle, 1, false, transformMatrix, 0);
 
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, VERTEX_COORDS.length/COORDS_PER_VERTEX);
 

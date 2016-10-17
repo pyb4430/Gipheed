@@ -62,6 +62,7 @@ import com.example.taylor.gipheed.GifPlaying.MovieDecoder;
 import com.example.taylor.gipheed.OpenGL.GifFrameRect;
 import com.example.taylor.gipheed.R;
 import com.example.taylor.gipheed.ThreadManager;
+import com.example.taylor.gipheed.Triangle;
 import com.example.taylor.gipheed.Utils;
 
 /**
@@ -113,9 +114,11 @@ public class GifDetailActivityV2 extends AppCompatActivity implements SurfaceHol
         setContentView(llMain);
 
         gifUrl = getIntent().getStringExtra("gifUrl");
+        movieDecoder = new MovieDecoder(DECODE_CALLBACK);
+        movieDecoder.getVideoSize(gifUrl);
 
         surfaceView = new SurfaceView(this);
-        surfaceView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, sizer.viewSize(120)));
+        surfaceView.setLayoutParams(new LinearLayout.LayoutParams(sizer.viewSize(120f), (int) ((float)sizer.viewSize(120f)*(movieDecoder.getHeight() / movieDecoder.getWidth()))));
         surfaceView.getHolder().addCallback(this);
         llMain.addView(surfaceView);
 
@@ -139,7 +142,7 @@ public class GifDetailActivityV2 extends AppCompatActivity implements SurfaceHol
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-
+        Log.v(TAG, "surface changed");
     }
 
     @Override
@@ -149,8 +152,12 @@ public class GifDetailActivityV2 extends AppCompatActivity implements SurfaceHol
 
     @Override
     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
-        Log.d(TAG, "frameAvailable:");
-        gifEditingThread.notifyFrameAvailable();
+        float[] matrix = new float[16];
+        surfaceTexture.getTransformMatrix(matrix);
+//        for (float i : matrix) {
+//            Log.v(TAG, "frameAvailable matrix: " + i);
+//        }
+        gifEditingThread.notifyFrameAvailable(matrix);
     }
 
     @Override
@@ -159,6 +166,9 @@ public class GifDetailActivityV2 extends AppCompatActivity implements SurfaceHol
 //            movieDecoder.setStopPlaybackFlag(true);
 //            movieDecoder.releaseResources();
             movieDecoder.stopSeeking();
+        }
+        if(gifEditingThread != null) {
+            gifEditingThread.release();
         }
         super.onStop();
     }
@@ -213,6 +223,7 @@ public class GifDetailActivityV2 extends AppCompatActivity implements SurfaceHol
         private EGLSurface mEglSurface;
         private EGLConfig mEGLConfig;
         private GifFrameRect mGifFrameRect;
+        private Triangle mTriangle;
         private int mTextureId;
 
         public GifEditingThread() {
@@ -250,8 +261,11 @@ public class GifDetailActivityV2 extends AppCompatActivity implements SurfaceHol
             handler.sendMessage(msg);
         }
 
-        public void notifyFrameAvailable() {
-            handler.sendEmptyMessage(MSG_FRAME_AVAILABLE);
+        public void notifyFrameAvailable(float[] transformMatrix) {
+            Message msg = handler.obtainMessage();
+            msg.what = MSG_FRAME_AVAILABLE;
+            msg.obj = transformMatrix;
+            handler.sendMessage(msg);
         }
 
         public void updateFrame() {
@@ -276,7 +290,7 @@ public class GifDetailActivityV2 extends AppCompatActivity implements SurfaceHol
                     EGL14.EGL_NONE
             };
 
-//            Log.d(TAG, "egl display null? " + (config ==null));
+            Log.d(TAG, "egl display null? " + (mEGLDisplay ==null));
             EGLContext context = EGL14.eglCreateContext(mEGLDisplay, config, EGL14.EGL_NO_CONTEXT, attrib2_list, 0);
             mEglContext = context;
             mEGLConfig = config;
@@ -323,6 +337,55 @@ public class GifDetailActivityV2 extends AppCompatActivity implements SurfaceHol
             return configs[0];
         }
 
+        /**
+         * Discards all resources held by this class, notably the EGL context.  This must be
+         * called from the thread where the context was created.
+         * <p>
+         * On completion, no context will be current.
+         */
+        public void release() {
+            if (mEGLDisplay != EGL14.EGL_NO_DISPLAY) {
+                if(mEglSurface != null) {
+                    releaseSurface(mEglSurface);
+                }
+                // Android is unusual in that it uses a reference-counted EGLDisplay.  So for
+                // every eglInitialize() we need an eglTerminate().
+                EGL14.eglMakeCurrent(mEGLDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE,
+                        EGL14.EGL_NO_CONTEXT);
+                EGL14.eglDestroyContext(mEGLDisplay, mEglContext);
+                EGL14.eglReleaseThread();
+                EGL14.eglTerminate(mEGLDisplay);
+            }
+
+            mEGLDisplay = EGL14.EGL_NO_DISPLAY;
+            mEglContext = EGL14.EGL_NO_CONTEXT;
+            mEGLConfig = null;
+        }
+
+        @Override
+        protected void finalize() throws Throwable {
+            try {
+                if (mEGLDisplay != EGL14.EGL_NO_DISPLAY) {
+                    // We're limited here -- finalizers don't run on the thread that holds
+                    // the EGL state, so if a surface or context is still current on another
+                    // thread we can't fully release it here.  Exceptions thrown from here
+                    // are quietly discarded.  Complain in the log file.
+                    Log.w(TAG, "WARNING: EglCore was not explicitly released -- state may be leaked");
+                    release();
+                }
+            } finally {
+                super.finalize();
+            }
+        }
+
+        /**
+         * Destroys the specified surface.  Note the EGLSurface won't actually be destroyed if it's
+         * still current in a context.
+         */
+        public void releaseSurface(EGLSurface eglSurface) {
+            EGL14.eglDestroySurface(mEGLDisplay, eglSurface);
+        }
+
         public EGLSurface createWindowSurface(Surface surface) {
             int[] surfaceAttribs = {
                     EGL14.EGL_NONE
@@ -351,6 +414,7 @@ public class GifDetailActivityV2 extends AppCompatActivity implements SurfaceHol
                         EGL14.eglMakeCurrent(mEGLDisplay, mEglSurface, mEglSurface, mEglContext);
 
                         mGifFrameRect = new GifFrameRect();
+                        mTriangle = new Triangle();
 
                         int[] textures = new int[1];
                         GLES20.glGenTextures(1, textures, 0);
@@ -368,7 +432,6 @@ public class GifDetailActivityV2 extends AppCompatActivity implements SurfaceHol
                                 GLES20.GL_CLAMP_TO_EDGE);
 
                         surfaceTexture = new SurfaceTexture(mTextureId);
-                        movieDecoder = new MovieDecoder(DECODE_CALLBACK);
                         movieDecoder.prepForSeeking(gifUrl, new Surface(surfaceTexture), GifEditingThread.this);
                         seekBar.setOnSeekBarChangeListener(SEEK_LISTENER);
                         surfaceTexture.setOnFrameAvailableListener(GifDetailActivityV2.this);
@@ -377,7 +440,8 @@ public class GifDetailActivityV2 extends AppCompatActivity implements SurfaceHol
                         surfaceTexture.updateTexImage();
                         break;
                     case MSG_FRAME_AVAILABLE:
-                        mGifFrameRect.draw(mTextureId);
+                        mGifFrameRect.draw(mTextureId, (float[]) msg.obj);
+//                        mTriangle.draw();
                         EGL14.eglSwapBuffers(mEGLDisplay, mEglSurface);
                         break;
                 }
