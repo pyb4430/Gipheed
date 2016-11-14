@@ -289,7 +289,7 @@ public class GifEditingThread extends HandlerThread {
                     break;
                 case MSG_FRAME_AVAILABLE:
                     mGifFrameRect.draw(mTextureId, (float[]) msg.obj);
-//                        mTriangle.draw();
+                        mTriangle.draw();
                     EGL14.eglSwapBuffers(mEGLDisplay, mEglSurface);
                     break;
             }

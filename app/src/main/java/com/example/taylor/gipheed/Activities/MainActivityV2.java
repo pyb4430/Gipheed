@@ -204,23 +204,25 @@ public class MainActivityV2 extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if(item.getItemId() == R.id.menu_toggle_view) {
-            Log.v(TAG, "view mode toggled");
-            if(isViewModeStream) {
-                isViewModeStream = false;
-                item.setIcon(R.drawable.ic_view_stream_black_24dp);
-            } else {
-                isViewModeStream = true;
-                item.setIcon(R.drawable.ic_view_list_black_24dp);
-            }
-            if(trendingFragment != null) {
-                trendingFragment.setIsViewModeStream(isViewModeStream);
-            }
-            if(searchFragment != null) {
-                searchFragment.setIsViewModeStream(isViewModeStream);
-            }
-            if(favoritesFragment != null) {
-                favoritesFragment.setIsViewModeStream(isViewModeStream);
-            }
+            Intent intent = new Intent(this, ImageMaskActivity.class);
+            startActivity(intent);
+//            Log.v(TAG, "view mode toggled");
+//            if(isViewModeStream) {
+//                isViewModeStream = false;
+//                item.setIcon(R.drawable.ic_view_stream_black_24dp);
+//            } else {
+//                isViewModeStream = true;
+//                item.setIcon(R.drawable.ic_view_list_black_24dp);
+//            }
+//            if(trendingFragment != null) {
+//                trendingFragment.setIsViewModeStream(isViewModeStream);
+//            }
+//            if(searchFragment != null) {
+//                searchFragment.setIsViewModeStream(isViewModeStream);
+//            }
+//            if(favoritesFragment != null) {
+//                favoritesFragment.setIsViewModeStream(isViewModeStream);
+//            }
         }
         return super.onOptionsItemSelected(item);
     }

@@ -136,6 +136,7 @@ public class MovieDecoder {
 //            Log.v(TAG, "duration: " + duration + " " + lastSampleTime);
 //            metadataRetriever.release();
 
+            //TODO: Figure out how to show the first frame of the gif right
             if(decodeCallback != null) {
                 decodeCallback.metaDataRetrieved(mediaFormat.getInteger(MediaFormat.KEY_WIDTH), mediaFormat.getInteger(MediaFormat.KEY_HEIGHT), frameCount, lastSampleTime);
             }
@@ -173,6 +174,9 @@ public class MovieDecoder {
             seekRunnable.setGifEditingThread(gifEditingThread);
             ThreadManager.Run(seekRunnable);
 
+//            if(decodeCallback != null) {
+//                decodeCallback.onReadyToSeek();
+//            }
         } catch (IOException e) {
             Log.e(TAG, "decode error: " + e.getMessage());
         }
@@ -433,10 +437,11 @@ public class MovieDecoder {
 
     public interface DecodeCallback {
         void metaDataRetrieved(int width, int height, int numberOfFrames, long lastSampleTime);
+        void onReadyToSeek();
     }
 
 
-    private static class SeekRunnable implements Runnable {
+    private class SeekRunnable implements Runnable {
 
         private MediaCodec vidDecoder;
         private MediaExtractor vidExtractor;
@@ -483,6 +488,9 @@ public class MovieDecoder {
             // We want all frames to render when seeking forward, but only the target frame should render when seeking backwards
             shouldRender = true;
 
+            if(decodeCallback != null) {
+                decodeCallback.onReadyToSeek();
+            }
             while(!stopSeeking) {
                 if(targetFrame != lastTargetFrame) {
                     // Calculate the target presentationTime

@@ -34,7 +34,11 @@
         <activity android:name=".Activities.GifDetailActivityV2">
 
         </activity>
-        
+
+        <activity android:name=".Activities.ImageMaskActivity">
+
+        </activity>
+
         <provider
             android:authorities="com.openglpractice.app.provider"
             android:name="com.example.taylor.gipheed.ContentProvider.FavContentProvider"/>

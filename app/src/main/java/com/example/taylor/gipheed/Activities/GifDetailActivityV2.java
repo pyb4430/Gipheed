@@ -30,6 +30,7 @@
 package com.example.taylor.gipheed.Activities;
 
 import android.graphics.SurfaceTexture;
+import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.opengl.EGL14;
 import android.opengl.EGLConfig;
@@ -55,6 +56,7 @@ import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 
@@ -76,6 +78,8 @@ public class GifDetailActivityV2 extends AppCompatActivity implements SurfaceHol
 
     private Utils.Sizer sizer;
     private LinearLayout llMain;
+    private LinearLayout llHeader;
+    private ImageView iconAddSprite;
     private SurfaceView surfaceView;
     private SeekBar seekBar;
 
@@ -102,9 +106,19 @@ public class GifDetailActivityV2 extends AppCompatActivity implements SurfaceHol
 
         llMain = new LinearLayout(this);
         llMain.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        llMain.setGravity(Gravity.CENTER);
+        llMain.setGravity(Gravity.TOP);
         llMain.setOrientation(LinearLayout.VERTICAL);
         setContentView(llMain);
+
+        llHeader = new LinearLayout(this);
+        llHeader.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, sizer.viewSize(18)));
+        llHeader.setOrientation(LinearLayout.HORIZONTAL);
+        llMain.addView(llHeader);
+
+        iconAddSprite = new ImageView(this);
+        iconAddSprite.setImageResource(R.drawable.ic_search_black_24dp);
+        iconAddSprite.setLayoutParams(new LinearLayout.LayoutParams(sizer.viewSize(12), sizer.viewSize(12)));
+        llHeader.addView(iconAddSprite);
 
         gifUrl = getIntent().getStringExtra("gifUrl");
         movieDecoder = new MovieDecoder(DECODE_CALLBACK);
@@ -177,6 +191,12 @@ public class GifDetailActivityV2 extends AppCompatActivity implements SurfaceHol
                     seekBar.setMax(numberOfFrames);
                 }
             });
+
+        }
+
+        @Override
+        public void onReadyToSeek() {
+            movieDecoder.goToFrame2(1);
         }
     };
 

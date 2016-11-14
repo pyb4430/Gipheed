@@ -188,6 +188,11 @@ public class GifDetailActivity extends AppCompatActivity implements TextureView.
                 }
             });
         }
+
+        @Override
+        public void onReadyToSeek() {
+
+        }
     };
 
     private final SeekBar.OnSeekBarChangeListener SEEK_LISTENER = new SeekBar.OnSeekBarChangeListener() {
