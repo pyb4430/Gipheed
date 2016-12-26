@@ -28,7 +28,7 @@ import com.example.taylor.gipheed.R;
 import com.example.taylor.gipheed.ThreadManager;
 import com.example.taylor.gipheed.Utils;
 
-public class MainActivityV2 extends AppCompatActivity {
+public class MainActivityV2 extends AbstractActivity {
 
     private static final String TAG = "MainActivityV2";
 

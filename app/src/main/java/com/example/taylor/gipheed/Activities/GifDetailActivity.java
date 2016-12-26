@@ -55,7 +55,7 @@ import com.example.taylor.gipheed.Utils;
  * Created by Taylor on 9/27/2016.
  */
 
-public class GifDetailActivity extends AppCompatActivity implements TextureView.SurfaceTextureListener{
+public class GifDetailActivity extends AbstractActivity implements TextureView.SurfaceTextureListener{
 
     private static final String TAG = "GifDetailActivity";
 

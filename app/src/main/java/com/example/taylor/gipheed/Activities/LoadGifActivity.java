@@ -17,7 +17,7 @@ import com.example.taylor.gipheed.R;
 /**
  * Created by Taylor on 8/20/2016.
  */
-public class LoadGifActivity extends Activity {
+public class LoadGifActivity extends AbstractActivity {
 
     private GifView imageView;
     private Bitmap bm;

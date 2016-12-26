@@ -13,19 +13,23 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import com.example.taylor.gipheed.DrawSurfView;
 import com.example.taylor.gipheed.DrawView;
 import com.example.taylor.gipheed.MyGLSurfaceView;
+import com.example.taylor.gipheed.Utils;
 
 import java.io.InputStream;
 
 /**
  * Created by Taylor on 8/20/2016.
  */
-public class ImageMaskActivity extends AppCompatActivity {
+public class ImageMaskActivity extends AbstractActivity {
 
     public final static String TAG = "ImageMaskActivity";
+
+    private Utils.Sizer sizer;
 
     private FrameLayout flMain;
     private Button button;
@@ -42,6 +46,8 @@ public class ImageMaskActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        sizer = Utils.getSizer(this);
 
         flMain = new FrameLayout(this);
         flMain.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -158,6 +164,8 @@ public class ImageMaskActivity extends AppCompatActivity {
             }
 
             drawView.setImageSize(o.outWidth, o.outHeight);
+            drawView.setLayoutParams(new FrameLayout.LayoutParams(sizer.viewSize(120), (int)((float)sizer.viewSize(120)*((float)o.outHeight/(float)o.outWidth))));
+            surfaceView.setLayoutParams(new FrameLayout.LayoutParams(sizer.viewSize(120), (int)((float)sizer.viewSize(120)*((float)o.outHeight/(float)o.outWidth))));
         }
     }
 }

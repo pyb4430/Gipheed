@@ -24,7 +24,7 @@ import com.example.taylor.gipheed.ThreadManager;
 import com.example.taylor.gipheed.GifFeedRecyclerAdapter;
 import com.example.taylor.gipheed.Utils;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AbstractActivity {
 
     private static final String TAG = "MainActivity";
 

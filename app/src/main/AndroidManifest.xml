@@ -42,6 +42,11 @@
         <provider
             android:authorities="com.openglpractice.app.provider"
             android:name="com.example.taylor.gipheed.ContentProvider.FavContentProvider"/>
+
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="fb53a10e671757e6d76026765694c2e03e6a8050"
+            />
     </application>
 
 </manifest>

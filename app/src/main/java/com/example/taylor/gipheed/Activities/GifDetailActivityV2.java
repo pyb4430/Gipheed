@@ -29,6 +29,7 @@
 
 package com.example.taylor.gipheed.Activities;
 
+import android.content.Intent;
 import android.graphics.SurfaceTexture;
 import android.graphics.drawable.Icon;
 import android.net.Uri;
@@ -68,11 +69,13 @@ import com.example.taylor.gipheed.ThreadManager;
 import com.example.taylor.gipheed.Triangle;
 import com.example.taylor.gipheed.Utils;
 
+import java.util.ArrayList;
+
 /**
  * Created by Taylor on 9/27/2016.
  */
 
-public class GifDetailActivityV2 extends AppCompatActivity implements SurfaceHolder.Callback, SurfaceTexture.OnFrameAvailableListener {
+public class GifDetailActivityV2 extends AbstractActivity implements SurfaceHolder.Callback, SurfaceTexture.OnFrameAvailableListener {
 
     private static final String TAG = "GifDetailActivity";
 
@@ -139,6 +142,14 @@ public class GifDetailActivityV2 extends AppCompatActivity implements SurfaceHol
         gifEditingThread.start();
         gifEditingThread.initHandler();
         gifEditingThread.init();
+
+        iconAddSprite.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(GifDetailActivityV2.this, ImageMaskActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override
