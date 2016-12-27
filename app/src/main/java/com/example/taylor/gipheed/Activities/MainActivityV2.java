@@ -45,6 +45,7 @@ public class MainActivityV2 extends AppCompatActivity {
 
     private ViewPager viewPager;
 
+
     private String searchQuery;
     private boolean newSearchRecieved = false;
 
