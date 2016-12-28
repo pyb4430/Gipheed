@@ -18,6 +18,9 @@ android {
             multiDexEnabled true
         }
     }
+    lintOptions{
+        ignoreWarnings true
+    }
 }
 
 dependencies {
