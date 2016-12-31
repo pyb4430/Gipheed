@@ -19,6 +19,7 @@ public class GifPlayer extends TextureView implements TextureView.SurfaceTexture
 
     private static final String TAG = "GifPlayer";
 
+
     private boolean surfaceTextureReady = false;
     private MediaPlayer mp;
     private Utils.Sizer sizer;
